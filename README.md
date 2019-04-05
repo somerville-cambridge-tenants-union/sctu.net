@@ -1,3 +1,1 @@
-# SCTU Website
-
-Somerville Cambridge Tenants Union
+<img alt="sctu" src="./sctu.net/logo.jpg"/>
