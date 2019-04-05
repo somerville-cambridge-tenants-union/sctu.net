@@ -1,3 +1,11 @@
+terraform {
+  backend s3 {
+    bucket = "sctu.net"
+    key    = "sctu.net.tfstate"
+    region = "us-east-1"
+  }
+}
+
 provider aws {
   access_key = "${var.aws_access_key_id}"
   profile    = "${var.aws_profile}"
