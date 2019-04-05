@@ -1,0 +1,15 @@
+language: python
+python:
+- 3.7-dev
+services:
+- docker
+install:
+- make init
+jobs:
+  include:
+    - stage: plan
+      script: make plan
+      if: tag IS blank
+    - stage: apply
+      script: make plan apply release=${TRAVIS_TAG}
+      if: tag IS present
