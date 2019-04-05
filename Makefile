@@ -2,13 +2,15 @@ release ?= $(shell git describe --tags --always)
 
 .PHONY: init plan apply clean
 
-init:
+.terraform:
 	docker-compose run --rm terraform init
 
-plan:
+init: .terraform
+
+plan: init
 	docker-compose run --rm -e TF_VAR_release=$(release) terraform plan
 
-apply:
+apply: init
 	docker-compose run --rm -e TF_VAR_release=$(release) terraform apply -auto-approve
 
 clean:
