@@ -20,7 +20,7 @@
     <meta name="theme-color" content="#ffffff">
 
     <!-- Typeface -->
-    <link href="https://fonts.googleapis.com/css?family=Quicksand" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Quicksand:500,700" rel="stylesheet">
 
     <!-- Stylesheets -->
     <link rel="stylesheet" type="text/css" href="https://cdn.rawgit.com/dhg/Skeleton/2.0.4/css/normalize.css">
@@ -52,5 +52,22 @@
       </div>
 
     </div>
+
+    <!-- Scripts -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/showdown@1.9.0/dist/showdown.min.js"></script>
+    <script>
+      window.onload = function() {
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+          if (this.readyState == 4 && this.status == 200) {
+            var conv = new showdown.Converter(),
+                html = conv.makeHtml(this.responseText);
+            document.getElementById("sctu").innerHTML = html;
+          }
+        };
+        xhttp.open("GET", "/SCTU.md?" +new Date(), true);
+        xhttp.send();
+      };
+    </script>
   </body>
 </html>

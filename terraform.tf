@@ -196,6 +196,16 @@ resource aws_s3_bucket_object png {
   tags         = "${local.tags}"
 }
 
+resource aws_s3_bucket_object sctu {
+  acl          = "private"
+  bucket       = "${aws_s3_bucket.website.bucket}"
+  content      = "${file("${local.domain_name}/SCTU.md")}"
+  content_type = "text/markdown"
+  etag         = "${filemd5("${local.domain_name}/SCTU.md")}"
+  key          = "SCTU.md"
+  tags         = "${local.tags}"
+}
+
 resource aws_s3_bucket_object otf {
   acl          = "private"
   bucket       = "${aws_s3_bucket.website.bucket}"
