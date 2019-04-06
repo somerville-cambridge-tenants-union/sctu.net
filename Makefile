@@ -1,6 +1,6 @@
 release ?= $(shell git describe --tags --always)
 
-.PHONY: init plan apply clean
+.PHONY: init plan apply server clean
 
 .terraform:
 	docker-compose run --rm terraform init
@@ -12,6 +12,9 @@ plan: init
 
 apply: init
 	docker-compose run --rm -e TF_VAR_release=$(release) terraform apply -auto-approve
+
+server:
+	python -m http.server --directory sctu.net
 
 clean:
 	rm -rf .terraform
