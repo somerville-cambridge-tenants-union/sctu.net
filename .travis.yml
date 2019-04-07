@@ -4,6 +4,7 @@ python:
 services:
 - docker
 install:
+- pip install awscli
 - make init
 jobs:
   include:
@@ -11,5 +12,5 @@ jobs:
       script: make plan
       if: tag IS blank
     - stage: apply
-      script: make plan apply release=${TRAVIS_TAG}
+      script: make plan apply invalidation release=${TRAVIS_TAG}
       if: tag IS present

@@ -244,3 +244,8 @@ variable repo {
   description = "Project repository."
   default     = "https://github.com/somerville-cambridge-tenants-union/sctu.net"
 }
+
+output cloudfront_distribution_id {
+  description = "CloudFront distribution ID."
+  value       = "${aws_cloudfront_distribution.website.id}"
+}
