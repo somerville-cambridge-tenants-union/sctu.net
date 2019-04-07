@@ -168,9 +168,9 @@ resource aws_s3_bucket website {
 resource aws_s3_bucket_object css {
   acl          = "private"
   bucket       = "${aws_s3_bucket.website.bucket}"
-  content      = "${file("${local.domain_name}/main.css")}"
+  content      = "${file("www/main.css")}"
   content_type = "text/css"
-  etag         = "${filemd5("${local.domain_name}/main.css")}"
+  etag         = "${filemd5("www/main.css")}"
   key          = "main.css"
   tags         = "${local.tags}"
 }
@@ -179,41 +179,41 @@ resource aws_s3_bucket_object html {
   count        = "${length(local.html)}"
   acl          = "private"
   bucket       = "${aws_s3_bucket.website.bucket}"
-  content      = "${file("${local.domain_name}/${element(local.html, count.index)}.html")}"
+  content      = "${file("www/${element(local.html, count.index)}.html")}"
   content_type = "text/html"
-  etag         = "${filemd5("${local.domain_name}/${element(local.html, count.index)}.html")}"
+  etag         = "${filemd5("www/${element(local.html, count.index)}.html")}"
   key          = "${element(local.html, count.index)}.html"
   tags         = "${local.tags}"
 }
 
-resource aws_s3_bucket_object png {
-  acl          = "private"
-  bucket       = "${aws_s3_bucket.website.bucket}"
-  content_type = "image/jpeg"
-  etag         = "${filemd5("${local.domain_name}/logo.jpg")}"
-  key          = "logo.jpg"
-  source       = "${local.domain_name}/logo.jpg"
-  tags         = "${local.tags}"
+resource aws_s3_bucket_object jpg {
+  acl            = "private"
+  bucket         = "${aws_s3_bucket.website.bucket}"
+  content_base64 = "${base64encode(file("www/logo.jpg"))}"
+  content_type   = "image/jpeg"
+  etag           = "${filemd5("www/logo.jpg")}"
+  key            = "logo.jpg"
+  tags           = "${local.tags}"
 }
 
 resource aws_s3_bucket_object sctu {
   acl          = "private"
   bucket       = "${aws_s3_bucket.website.bucket}"
-  content      = "${file("${local.domain_name}/SCTU.md")}"
+  content      = "${file("www/SCTU.md")}"
   content_type = "text/markdown"
-  etag         = "${filemd5("${local.domain_name}/SCTU.md")}"
+  etag         = "${filemd5("www/SCTU.md")}"
   key          = "SCTU.md"
   tags         = "${local.tags}"
 }
 
 resource aws_s3_bucket_object otf {
-  acl          = "private"
-  bucket       = "${aws_s3_bucket.website.bucket}"
-  content_type = "application/x-font-opentype"
-  etag         = "${filemd5("${local.domain_name}/MonumentExtended-Ultrabold.otf")}"
-  key          = "MonumentExtended-Ultrabold.otf"
-  source       = "${local.domain_name}/MonumentExtended-Ultrabold.otf"
-  tags         = "${local.tags}"
+  acl            = "private"
+  bucket         = "${aws_s3_bucket.website.bucket}"
+  content_base64 = "${base64encode(file("www/MonumentExtended-Ultrabold.otf"))}"
+  content_type   = "application/x-font-opentype"
+  etag           = "${filemd5("www/MonumentExtended-Ultrabold.otf")}"
+  key            = "MonumentExtended-Ultrabold.otf"
+  tags           = "${local.tags}"
 }
 
 variable aws_access_key_id {
@@ -243,6 +243,11 @@ variable release {
 variable repo {
   description = "Project repository."
   default     = "https://github.com/somerville-cambridge-tenants-union/sctu.net"
+}
+
+output bucket_name {
+  description = "S3 website bucket name."
+  value       = "${aws_s3_bucket.website.bucket}"
 }
 
 output cloudfront_distribution_id {
