@@ -1,1 +1,1 @@
-<img alt="sctu" src="./sctu.net/logo.jpg"/>
+<img alt="sctu" src="./www/logo.jpg"/>
