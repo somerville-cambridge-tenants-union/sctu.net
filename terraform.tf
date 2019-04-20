@@ -11,7 +11,7 @@ provider aws {
   profile    = "${var.aws_profile}"
   region     = "${var.aws_region}"
   secret_key = "${var.aws_secret_access_key}"
-  version    = "~> 2.5"
+  version    = "~> 2.0"
 }
 
 locals {
@@ -163,57 +163,6 @@ resource aws_s3_bucket website {
     error_document = "error.html"
     index_document = "index.html"
   }
-}
-
-resource aws_s3_bucket_object css {
-  acl          = "private"
-  bucket       = "${aws_s3_bucket.website.bucket}"
-  content      = "${file("www/main.css")}"
-  content_type = "text/css"
-  etag         = "${filemd5("www/main.css")}"
-  key          = "main.css"
-  tags         = "${local.tags}"
-}
-
-resource aws_s3_bucket_object html {
-  count        = "${length(local.html)}"
-  acl          = "private"
-  bucket       = "${aws_s3_bucket.website.bucket}"
-  content      = "${file("www/${element(local.html, count.index)}.html")}"
-  content_type = "text/html"
-  etag         = "${filemd5("www/${element(local.html, count.index)}.html")}"
-  key          = "${element(local.html, count.index)}.html"
-  tags         = "${local.tags}"
-}
-
-resource aws_s3_bucket_object jpg {
-  acl            = "private"
-  bucket         = "${aws_s3_bucket.website.bucket}"
-  content_base64 = "${base64encode(file("www/logo.jpg"))}"
-  content_type   = "image/jpeg"
-  etag           = "${filemd5("www/logo.jpg")}"
-  key            = "logo.jpg"
-  tags           = "${local.tags}"
-}
-
-resource aws_s3_bucket_object sctu {
-  acl          = "private"
-  bucket       = "${aws_s3_bucket.website.bucket}"
-  content      = "${file("www/SCTU.md")}"
-  content_type = "text/markdown"
-  etag         = "${filemd5("www/SCTU.md")}"
-  key          = "SCTU.md"
-  tags         = "${local.tags}"
-}
-
-resource aws_s3_bucket_object otf {
-  acl            = "private"
-  bucket         = "${aws_s3_bucket.website.bucket}"
-  content_base64 = "${base64encode(file("www/MonumentExtended-Ultrabold.otf"))}"
-  content_type   = "application/x-font-opentype"
-  etag           = "${filemd5("www/MonumentExtended-Ultrabold.otf")}"
-  key            = "MonumentExtended-Ultrabold.otf"
-  tags           = "${local.tags}"
 }
 
 variable aws_access_key_id {
