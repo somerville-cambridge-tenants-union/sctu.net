@@ -8,4 +8,6 @@
 # .tfvars files
 *.tfvars
 
-.env
+*.build
+*.env
+*.tfplan

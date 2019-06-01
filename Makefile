@@ -1,28 +1,49 @@
-bucket_name      = $(shell docker-compose run --rm terraform output bucket_name)
-distribution_id  = $(shell docker-compose run --rm terraform output cloudfront_distribution_id)
-paths            = $(shell docker-compose run --rm -T aws s3 ls s3://$(bucket_name)/ | awk '{print $$4}' | sed 's/^/\//g' | tr '\n' ' ')
-release         := $(shell git describe --tags --always)
+# Project
+runtime   := ruby2.5
+name      := sctu.net
+release   := $(shell git describe --tags)
+build     := $(name)-$(release)
+buildfile := $(build).build
+planfile  := $(build).tfplan
+syncfile  := www.sha256sum
 
-.PHONY: init plan apply sync invalidate server clean
+# Docker Build
+image := sctu/$(name)
+digest = $(shell cat $(buildfile))
 
-init:
-	docker-compose run --rm terraform init
+# S3 Deploy
+s3_bucket := www.sctu.net
+s3_prefix :=
 
-plan:
-	docker-compose run --rm -e TF_VAR_release=$(release) terraform plan -out .terraform/planfile
+$(planfile): | $(syncfile)
+	docker run --rm $(digest) cat /var/task/$@ > $@
 
-apply: plan
-	docker-compose run --rm -e TF_VAR_release=$(release) terraform apply -auto-approve .terraform/planfile
+$(syncfile): $(buildfile)
+	docker run --rm $(digest) cat /var/task/$@ > $@
 
-sync:
-	docker-compose run --rm aws s3 sync www s3://$(bucket_name)/
+$(buildfile):
+	docker build \
+	--build-arg AWS_ACCESS_KEY_ID \
+	--build-arg AWS_DEFAULT_REGION \
+	--build-arg AWS_SECRET_ACCESS_KEY \
+	--build-arg PLANFILE=$(planfile) \
+	--build-arg TF_VAR_release=$(release) \
+	--iidfile $@ \
+	--tag $(image):$(release) .
 
-invalidate:
-	docker-compose run --rm aws cloudfront create-invalidation --distribution-id $(distribution_id) --paths $(paths)
+.PHONY: shell apply clean
 
-server:
-	python -m http.server --directory www
+shell: $(buildfile)
+	docker run --rm -it $(digest) /bin/bash
+
+apply: $(buildfile)
+	docker run --rm \
+	--env AWS_ACCESS_KEY_ID \
+	--env AWS_DEFAULT_REGION \
+	--env AWS_SECRET_ACCESS_KEY \
+	$(digest) \
+	terraform apply $(planfile)
 
 clean:
-	rm -rf .terraform
-	docker-compose down --volumes
+	docker image rm -f $(image) $(shell sed G *.build)
+	rm -rf *.build *.tfplan
