@@ -1,49 +1,35 @@
-# Project
-runtime   := ruby2.5
-name      := sctu.net
-release   := $(shell git describe --tags)
-build     := $(name)-$(release)
-buildfile := $(build).build
-planfile  := $(build).tfplan
-syncfile  := www.sha256sum
+name  := sctu.net
+build := $(shell git describe --tags --always)
 
-# Docker Build
-image := sctu/$(name)
-digest = $(shell cat $(buildfile))
+.PHONY: all apply clean shell
 
-# S3 Deploy
-s3_bucket := www.sctu.net
-s3_prefix :=
+all: www.sha256sum
 
-$(planfile): | $(syncfile)
-	docker run --rm $(digest) cat /var/task/$@ > $@
+.docker:
+	mkdir -p $@
 
-$(syncfile): $(buildfile)
-	docker run --rm $(digest) cat /var/task/$@ > $@
-
-$(buildfile):
+.docker/%: | .docker
 	docker build \
 	--build-arg AWS_ACCESS_KEY_ID \
 	--build-arg AWS_DEFAULT_REGION \
 	--build-arg AWS_SECRET_ACCESS_KEY \
-	--build-arg PLANFILE=$(planfile) \
-	--build-arg TF_VAR_release=$(release) \
+	--build-arg TF_VAR_release=$* \
 	--iidfile $@ \
-	--tag $(image):$(release) .
+	--tag sctu/$(name):$* .
 
-.PHONY: shell apply clean
-
-shell: $(buildfile)
-	docker run --rm -it $(digest) /bin/bash
-
-apply: $(buildfile)
+apply: .docker/$(build)
 	docker run --rm \
 	--env AWS_ACCESS_KEY_ID \
 	--env AWS_DEFAULT_REGION \
 	--env AWS_SECRET_ACCESS_KEY \
-	$(digest) \
-	terraform apply $(planfile)
+	$(shell cat $<)
 
 clean:
-	docker image rm -f $(image) $(shell sed G *.build)
-	rm -rf *.build *.tfplan
+	-docker image rm -f $(shell sed G .docker/*)
+	-rm -rf .docker www.sha256sum
+
+www.sha256sum: .docker/$(build)
+	docker run --rm $(shell cat $<) cat /var/task/$@ > $@
+
+shell: .docker/$(build) .env
+	docker run --rm -it --env-file .env $(shell cat $<) /bin/bash
