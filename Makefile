@@ -1,35 +1,43 @@
-name  := sctu.net
-build := $(shell git describe --tags --always)
+name   := sctu.net
+stages := build test plan
+build  := $(shell git describe --tags --always)
+shells := $(foreach stage,$(stages),shell@$(stage))
+digest  = $(shell cat .docker/$(build)@$(1))
 
-.PHONY: all apply clean shell
+.PHONY: all apply clean $(stages) $(shells)
 
 all: www.sha256sum
 
 .docker:
 	mkdir -p $@
 
-.docker/%: | .docker
+.docker/$(build)@test: .docker/$(build)@build
+.docker/$(build)@plan: .docker/$(build)@test
+.docker/$(build)@%: | .docker
 	docker build \
 	--build-arg AWS_ACCESS_KEY_ID \
 	--build-arg AWS_DEFAULT_REGION \
 	--build-arg AWS_SECRET_ACCESS_KEY \
-	--build-arg TF_VAR_release=$* \
+	--build-arg TF_VAR_release=$(build) \
 	--iidfile $@ \
-	--tag sctu/$(name):$* .
+	--tag sctu/$(name):$(build)-$* \
+	--target $* .
 
-apply: .docker/$(build)
+apply: plan
 	docker run --rm \
 	--env AWS_ACCESS_KEY_ID \
 	--env AWS_DEFAULT_REGION \
 	--env AWS_SECRET_ACCESS_KEY \
-	$(shell cat $<)
+	$(call digest,$<)
 
 clean:
-	-docker image rm -f $(shell sed G .docker/*)
+	-docker image rm -f $(shell awk {print} .docker/*)
 	-rm -rf .docker www.sha256sum
 
-www.sha256sum: .docker/$(build)
-	docker run --rm $(shell cat $<) cat /var/task/$@ > $@
+www.sha256sum: build
+	docker run --rm -w /var/task/ $(call digest,$<) cat $@ > $@
 
-shell: .docker/$(build) .env
-	docker run --rm -it --env-file .env $(shell cat $<) /bin/bash
+$(stages): %: .docker/$(build)@%
+
+$(shells): shell@%: % .env
+	docker run --rm -it --env-file .env $(call digest,$*) /bin/bash
