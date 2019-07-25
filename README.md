@@ -17,5 +17,5 @@ Navigate to [Travis CI](https://travis-ci.com/somerville-cambridge-tenants-union
 ## Development
 
 1. Ensure your AWS keys are properly exported into your environment
-2. Run `make` to build a Docker image that contains a planfile for terraform
+2. Run `make plan` to build a Docker image that contains a planfile for terraform
 3. Run `make apply` to apply the configuration to AWS
