@@ -5,7 +5,7 @@ shells := $(foreach stage,$(stages),shell@$(stage))
 
 terraform_version := 0.12.5
 
-.PHONY: all apply clean $(stages) $(shells)
+.PHONY: all apply clean up $(stages) $(shells)
 
 all: www.sha256sum
 
@@ -34,6 +34,9 @@ apply: .docker/$(build)@plan
 clean:
 	-docker image rm -f $(shell awk {print} .docker/*)
 	-rm -rf .docker www.sha256sum
+
+up:
+	cd www && python -m http.server
 
 www.sha256sum: .docker/$(build)@build
 	docker run --rm --entrypoint cat $(shell cat $<) $@ > $@
