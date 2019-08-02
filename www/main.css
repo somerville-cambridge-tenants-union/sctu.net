@@ -3,6 +3,11 @@
   src: url("./MonumentExtended-Ultrabold.otf") format("opentype");
 }
 
+@font-face {
+  font-family: Agrandir;
+  src: url("./Agrandir-Regular.otf") format("opentype");
+}
+
 /* Document */
 * {
   -webkit-user-select: none; /* Safari, iOS, and Android */
@@ -31,7 +36,7 @@ img {
 }
 
 #sctu {
-  font-family: 'Quicksand';
+  font-family: 'Agrandir';
   font-size: 1.4em;
   text-align: justify;
 }
