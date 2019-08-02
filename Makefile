@@ -3,7 +3,7 @@ stages := build test plan
 build  := $(shell git describe --tags --always)
 shells := $(foreach stage,$(stages),shell@$(stage))
 
-terraform_version := 0.12.5
+terraform_version := 0.12.6
 
 .PHONY: all apply clean up $(stages) $(shells)
 
