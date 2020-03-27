@@ -5,10 +5,10 @@ terraform {
     region = "us-east-1"
   }
 
-  required_version = ">= 0.12.0"
+  required_version = "~> 0.12"
 
   required_providers {
-    aws = ">= 2.7.0"
+    aws = "~> 2.7"
   }
 }
 
@@ -22,11 +22,16 @@ provider null {
 }
 
 locals {
+  domain_name     = "sctu.net"
+  domain_name_www = "www.sctu.net"
+  repo            = "https://github.com/somerville-cambridge-tenants-union/sctu.net"
+
+  version = var.VERSION
+
   tags = {
-    App     = "sctu"
-    Name    = var.domain_name
-    Release = var.release
-    Repo    = var.repo
+    Name    = local.domain_name
+    Version = local.version
+    Repo    = local.repo
   }
 }
 
@@ -34,7 +39,7 @@ data aws_iam_policy_document website {
   statement {
     sid       = "AllowCloudFront"
     actions   = ["s3:GetObject"]
-    resources = ["arn:aws:s3:::www.${var.domain_name}/*"]
+    resources = ["arn:aws:s3:::${local.domain_name_www}/*"]
 
     principals {
       type        = "AWS"
@@ -44,29 +49,12 @@ data aws_iam_policy_document website {
 }
 
 data aws_acm_certificate cert {
-  domain   = var.domain_name
+  domain   = local.domain_name
   statuses = ["ISSUED"]
 }
 
-/*
-resource aws_acm_certificate cert {
-  domain_name       = var.domain_name
-  tags              = local.tags
-  validation_method = "DNS"
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
-
-resource aws_acm_certificate_validation cert {
-  certificate_arn         = aws_acm_certificate.cert.arn
-  validation_record_fqdns = [data.aws_acm_certificate.cert.arn]
-}
-*/
-
 resource aws_cloudfront_distribution website {
-  aliases             = [var.domain_name, "www.${var.domain_name}"]
+  aliases             = [local.domain_name, local.domain_name_www]
   default_root_object = "index.html"
   enabled             = true
   is_ipv6_enabled     = true
@@ -120,75 +108,12 @@ resource aws_cloudfront_distribution website {
 }
 
 resource aws_cloudfront_origin_access_identity website {
-  comment = "access-identity-www.${var.domain_name}.s3.amazonaws.com"
+  comment = "access-identity-${local.domain_name_www}.s3.amazonaws.com"
 }
-
-/*
-resource aws_route53_record a {
-  name    = var.domain_name
-  type    = "A"
-  zone_id = aws_route53_zone.website.id
-
-  alias {
-    evaluate_target_health = false
-    name                   = aws_cloudfront_distribution.website.domain_name
-    zone_id                = aws_cloudfront_distribution.website.hosted_zone_id
-  }
-}
-
-resource aws_route53_record aaaa {
-  name    = var.domain_name
-  type    = "AAAA"
-  zone_id = aws_route53_zone.website.id
-
-  alias {
-    evaluate_target_health = false
-    name                   = aws_cloudfront_distribution.website.domain_name
-    zone_id                = aws_cloudfront_distribution.website.hosted_zone_id
-  }
-}
-
-resource aws_route53_record cert {
-  name    = aws_acm_certificate.cert.domain_validation_options.0.resource_record_name
-  records = [aws_acm_certificate.cert.domain_validation_options.0.resource_record_value]
-  ttl     = 300
-  type    = aws_acm_certificate.cert.domain_validation_options.0.resource_record_type
-  zone_id = aws_route53_zone.website.id
-}
-
-resource aws_route53_record www_a {
-  name    = "www.${var.domain_name}"
-  type    = "A"
-  zone_id = aws_route53_zone.website.id
-
-  alias {
-    evaluate_target_health = false
-    name                   = aws_cloudfront_distribution.website.domain_name
-    zone_id                = aws_cloudfront_distribution.website.hosted_zone_id
-  }
-}
-
-resource aws_route53_record www_aaaa {
-  name    = "www.${var.domain_name}"
-  type    = "AAAA"
-  zone_id = aws_route53_zone.website.id
-
-  alias {
-    evaluate_target_health = false
-    name                   = aws_cloudfront_distribution.website.domain_name
-    zone_id                = aws_cloudfront_distribution.website.hosted_zone_id
-  }
-}
-
-resource aws_route53_zone website {
-  comment = "HostedZone created by Route53 Registrar"
-  name    = var.domain_name
-}
-*/
 
 resource aws_s3_bucket website {
   acl           = "private"
-  bucket        = "www.${var.domain_name}"
+  bucket        = local.domain_name_www
   force_destroy = false
   policy        = data.aws_iam_policy_document.website.json
   tags          = local.tags
@@ -209,7 +134,7 @@ resource aws_s3_bucket_public_access_block website {
 
 resource null_resource sync {
   triggers = {
-    digest = file("www.sha256sum")
+    version = local.version
   }
 
   provisioner "local-exec" {
@@ -227,36 +152,26 @@ resource null_resource invalidation {
   }
 }
 
-variable domain_name {
-  description = "Website domain name."
-  default     = "sctu.net"
-}
-
-variable release {
-  description = "Release tag."
-}
-
-variable repo {
-  description = "Project repository."
-  default     = "https://github.com/somerville-cambridge-tenants-union/sctu.net"
+variable VERSION {
+  description = "Release tag name"
 }
 
 output bucket_name {
-  description = "S3 website bucket name."
+  description = "S3 website bucket name"
   value       = aws_s3_bucket.website.bucket
 }
 
 output cloudfront_distribution_id {
-  description = "CloudFront distribution ID."
+  description = "CloudFront distribution ID"
   value       = aws_cloudfront_distribution.website.id
 }
 
 output sync_id {
-  description = "S3 sync ID."
+  description = "S3 sync ID"
   value       = null_resource.sync.id
 }
 
 output invalidation_id {
-  description = "CloudFront invalidation ID."
+  description = "CloudFront invalidation ID"
   value       = null_resource.invalidation.id
 }
