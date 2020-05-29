@@ -5,6 +5,7 @@
 	terraform init
 
 terraform.zip: | .terraform
+	terraform fmt -check
 	terraform plan -out $@
 
 .PHONY: default apply cachebust clean plan up sync
@@ -21,8 +22,7 @@ cachebust: | .terraform
 clean:
 	rm -rf .terraform terraform.zip
 
-plan:
-	terraform plan
+plan: terraform.zip
 
 up:
 	@echo 'Starting server on http://localhost:8080/'
