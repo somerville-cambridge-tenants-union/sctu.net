@@ -16,7 +16,7 @@ apply: terraform.zip
 	terraform apply $<
 
 cachebust: | .terraform
-	terraform output cloudfront_distribution_id \
+	aws cloudfront list-distributions --query 'DistributionList.Items[].Id' --output text \
 	| xargs aws cloudfront create-invalidation --paths '/*' --distribution-id
 
 clean:
