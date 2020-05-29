@@ -4,16 +4,25 @@
 .terraform:
 	terraform init
 
-.PHONY: default apply cachebust plan up sync
+terraform.zip: | .terraform
+	terraform plan -out $@
+
+.PHONY: default apply cachebust clean plan up sync
 
 default: plan
 
-apply plan: | .terraform
-	terraform $@
+apply: terraform.zip
+	terraform apply $<
 
 cachebust: | .terraform
 	terraform output cloudfront_distribution_id \
 	| xargs aws cloudfront create-invalidation --paths '/*' --distribution-id
+
+clean:
+	rm -rf .terraform terraform.zip
+
+plan:
+	terraform plan
 
 up:
 	@echo 'Starting server on http://localhost:8080/'
