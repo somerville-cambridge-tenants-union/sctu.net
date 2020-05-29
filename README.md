@@ -1,4 +1,4 @@
-<img alt="sctu" src="./www/logo.jpg"/>
+<img alt="sctu" src="./www/logo.jpg"/><br/>
 
 Source code for [sctu.net](https://www.sctu.net) website.
 
