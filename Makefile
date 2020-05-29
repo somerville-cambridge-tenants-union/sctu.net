@@ -1,25 +1,22 @@
-BUILD := $(shell date +%Y.%-m.%-d)
-
 .env:
 	cp $@.example $@
 
 .terraform:
 	terraform init
 
-# terraform.tfvars:
-# 	echo 'VERSION = "$(BUILD)"' > $@
-
-.PHONY: default apply clear clobber plan up shell sync
+.PHONY: default apply cachebust plan up sync
 
 default: plan
 
 apply plan: | .terraform
 	terraform $@
 
-clear: | .terraform
-	aws cloudfront create-invalidation --distribution-id $$(terraform output cloudfront_distribution_id) --paths '/*'
+cachebust: | .terraform
+	terraform output cloudfront_distribution_id \
+	| xargs aws cloudfront create-invalidation --paths '/*' --distribution-id
 
 up:
+	@echo 'Starting server on http://localhost:8080/'
 	ruby -run -e httpd www
 
 sync:

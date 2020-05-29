@@ -17,10 +17,6 @@ provider aws {
   version = "~> 2.7"
 }
 
-provider null {
-  version = "~> 2.0"
-}
-
 locals {
   domain_name     = "sctu.net"
   domain_name_www = "www.sctu.net"
@@ -129,26 +125,6 @@ resource aws_s3_bucket_public_access_block website {
   restrict_public_buckets = true
 }
 
-resource null_resource sync {
-  triggers = {
-    version = local.version
-  }
-
-  provisioner "local-exec" {
-    command = "aws s3 sync www s3://${aws_s3_bucket.website.bucket}/"
-  }
-}
-
-resource null_resource invalidation {
-  triggers = {
-    sync = null_resource.sync.id
-  }
-
-  provisioner "local-exec" {
-    command = "aws cloudfront create-invalidation --distribution-id ${aws_cloudfront_distribution.website.id} --paths '/*'"
-  }
-}
-
 output bucket_name {
   description = "S3 website bucket name"
   value       = aws_s3_bucket.website.bucket
@@ -157,14 +133,4 @@ output bucket_name {
 output cloudfront_distribution_id {
   description = "CloudFront distribution ID"
   value       = aws_cloudfront_distribution.website.id
-}
-
-output sync_id {
-  description = "S3 sync ID"
-  value       = null_resource.sync.id
-}
-
-output invalidation_id {
-  description = "CloudFront invalidation ID"
-  value       = null_resource.invalidation.id
 }
