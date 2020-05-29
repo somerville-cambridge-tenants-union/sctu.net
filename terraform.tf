@@ -1,8 +1,11 @@
 terraform {
-  backend s3 {
-    bucket = "sctu.net"
-    key    = "sctu.net.tfstate"
-    region = "us-east-1"
+  backend remote {
+    hostname     = "app.terraform.io"
+    organization = "mcc"
+
+    workspaces {
+      name = "sctu-net"
+    }
   }
 
   required_version = "~> 0.12"
