@@ -26,12 +26,9 @@ locals {
   domain_name_www = "www.sctu.net"
   repo            = "https://github.com/somerville-cambridge-tenants-union/sctu.net"
 
-  version = var.VERSION
-
   tags = {
-    Name    = local.domain_name
-    Version = local.version
-    Repo    = local.repo
+    Name = local.domain_name
+    Repo = local.repo
   }
 }
 
@@ -150,10 +147,6 @@ resource null_resource invalidation {
   provisioner "local-exec" {
     command = "aws cloudfront create-invalidation --distribution-id ${aws_cloudfront_distribution.website.id} --paths '/*'"
   }
-}
-
-variable VERSION {
-  description = "Release tag name"
 }
 
 output bucket_name {
