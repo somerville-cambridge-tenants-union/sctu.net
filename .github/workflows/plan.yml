@@ -2,10 +2,8 @@ name: plan
 on:
   pull_request:
   push:
-    branches:
-      - '*'
   schedule:
-    - cron: "11 21 * * *"
+    - cron: '11 21 * * *'
 jobs:
   plan:
     runs-on: ubuntu-latest
