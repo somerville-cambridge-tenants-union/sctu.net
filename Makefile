@@ -4,7 +4,7 @@
 .terraform:
 	terraform init
 
-terraform.zip: | .terraform
+.terraform/terraform.zip: *.tf | .terraform
 	terraform fmt -check
 	terraform plan -out $@
 
@@ -20,7 +20,7 @@ cachebust: | .terraform
 	| xargs aws cloudfront create-invalidation --paths '/*' --distribution-id
 
 clean:
-	rm -rf .terraform terraform.zip
+	rm -rf .terraform
 
 plan: terraform.zip
 
