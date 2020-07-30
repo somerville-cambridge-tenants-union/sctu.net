@@ -11,6 +11,8 @@ terraform {
 provider aws {
   region  = "us-east-1"
   version = "~> 2.7"
+
+  assume_role { role_arn = var.AWS_ROLE_ARN }
 }
 
 locals {
@@ -129,4 +131,7 @@ output bucket_name {
 output cloudfront_distribution_id {
   description = "CloudFront distribution ID"
   value       = aws_cloudfront_distribution.website.id
+}
+
+variable AWS_ROLE_ARN {
 }
