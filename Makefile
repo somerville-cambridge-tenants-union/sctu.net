@@ -12,7 +12,7 @@
 
 default: plan
 
-apply: terraform.zip
+apply: .terraform/terraform.zip
 	terraform apply $<
 
 cachebust: | .terraform
@@ -22,7 +22,7 @@ cachebust: | .terraform
 clean:
 	rm -rf .terraform
 
-plan: terraform.zip
+plan: .terraform/terraform.zip
 
 up:
 	@echo 'Starting server on http://localhost:8080/'
