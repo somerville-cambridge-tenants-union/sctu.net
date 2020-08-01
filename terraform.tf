@@ -24,18 +24,7 @@ locals {
   }
 }
 
-data aws_iam_policy_document website {
-  statement {
-    sid       = "AllowCloudFront"
-    actions   = ["s3:GetObject"]
-    resources = ["arn:aws:s3:::${local.domain_name_www}/*"]
-
-    principals {
-      type        = "AWS"
-      identifiers = [aws_cloudfront_origin_access_identity.website.iam_arn]
-    }
-  }
-}
+# CLOUDFRONT
 
 data aws_acm_certificate cert {
   domain   = local.domain_name
@@ -100,6 +89,21 @@ resource aws_cloudfront_origin_access_identity website {
   comment = "access-identity-${local.domain_name_www}.s3.amazonaws.com"
 }
 
+# S3
+
+data aws_iam_policy_document website {
+  statement {
+    sid       = "AllowCloudFront"
+    actions   = ["s3:GetObject"]
+    resources = ["arn:aws:s3:::${local.domain_name_www}/*"]
+
+    principals {
+      type        = "AWS"
+      identifiers = [aws_cloudfront_origin_access_identity.website.iam_arn]
+    }
+  }
+}
+
 resource aws_s3_bucket website {
   acl           = "private"
   bucket        = local.domain_name_www
@@ -120,6 +124,8 @@ resource aws_s3_bucket_public_access_block website {
   ignore_public_acls      = true
   restrict_public_buckets = true
 }
+
+# OUTPUTS
 
 output bucket_name {
   description = "S3 website bucket name"
