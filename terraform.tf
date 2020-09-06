@@ -27,8 +27,9 @@ locals {
 # CLOUDFRONT
 
 data aws_acm_certificate cert {
-  domain   = local.domain_name
-  statuses = ["ISSUED"]
+  domain      = local.domain_name
+  most_recent = true
+  statuses    = ["ISSUED"]
 }
 
 resource aws_cloudfront_distribution website {
